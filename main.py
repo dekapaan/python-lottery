@@ -1,4 +1,17 @@
+import datetime
 from tkinter import *
+from tkinter import messagebox
+from validate_email import validate_email
+import rsaidnumber
+from dateutil import relativedelta
+
+
+class EmailError(Exception):
+    pass
+
+
+class IdLengthError(Exception):
+    pass
 
 
 class LottoGUI:
@@ -8,6 +21,8 @@ class LottoGUI:
         self.master.title("Login")
         self.master.geometry("500x400")
         self.master.config(bg="#171717")
+
+
 
         # login frame
         self.frame = Frame(self.master, width=450, height=200, bg="#131313")
@@ -19,6 +34,11 @@ class LottoGUI:
         self.lbl_subhead = Label(self.frame, text="Enter your details", font="Garuda 12 bold", bg="#131313",
                                  fg="#FA003F")
         self.lbl_subhead.place(x=150, y=12)
+        img = PhotoImage(file='images/klipartz.png')
+        img = img.subsample(16)
+        lbl_image = Label(self.master, image=img, bg="#171717")
+        lbl_image.place(x=240, y=1)
+
         self.lbl_name = Label(self.frame, text="Name", font="Garuda 12", bg="#131313", fg="white")
         self.lbl_email = Label(self.frame, text="Email", font="Garuda 12", bg="#131313", fg="white")
         self.lbl_id = Label(self.frame, text="South African ID", font="Garuda 12", bg="#131313", fg="white")
@@ -52,15 +72,45 @@ class LottoGUI:
                                activeforeground="#171717", command=exit)
         self.btn_exit.place(x=425, y=330)
 
+        self.master.mainloop()
+
     def clear(self):
         self.entry_name.delete(0, 'end')
         self.entry_email.delete(0, 'end')
         self.entry_id.delete(0, 'end')
 
     def validate(self):
-        self.master.destroy()
+        try:
+            if not validate_email(self.entry_email.get()):
+                raise EmailError
+
+            int(self.entry_id.get())
+            id = (self.entry_id.get())
+            date_of_birth = rsaidnumber.parse(id).date_of_birth
+            if len(id) < 13 or len(id) > 13:
+                raise IdLengthError
+            elif relativedelta.relativedelta(datetime.datetime.today(), date_of_birth).years < 18:
+                messagebox.showerror("Error", "You are underage and unable to participate")
+
+            else:
+                messagebox.showinfo("Welcome", "Let's play!")
+                root.withdraw()
+                import play
+
+        except EmailError:
+            messagebox.showerror("Error", "Invalid email format")
+
+        except ValueError:
+            messagebox.showerror("Error", "Invalid ID number")
+
+        except IdLengthError:
+            messagebox.showerror("Error", "ID number must have 13 digits only")
+
+
 
 
 root = Tk()
 LottoGUI(root)
-root.mainloop()
+
+
+
