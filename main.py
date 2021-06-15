@@ -14,6 +14,10 @@ class IdLengthError(Exception):
     pass
 
 
+class FirstNameError(Exception):
+    pass
+
+
 class LottoGUI:
     def __init__(self, master):
         # Window set up
@@ -22,14 +26,13 @@ class LottoGUI:
         self.master.geometry("500x400")
         self.master.config(bg="#171717")
 
-
-
         # login frame
         self.frame = Frame(self.master, width=450, height=200, bg="#131313")
         self.frame.place(x=25, y=95)
 
         # login labels
-        self.lbl_head = Label(self.master, text="Test\nyour\nluck", width=10, font="monospace 12 bold", bg="#171717", fg="#FA003F")
+        self.lbl_head = Label(self.master, text="Test\nyour\nluck", width=10, font="monospace 12 bold", bg="#171717",
+                              fg="#FA003F")
         self.lbl_head.place(x=150, y=10)
         self.lbl_subhead = Label(self.frame, text="Enter your details", font="Garuda 12 bold", bg="#131313",
                                  fg="#FA003F")
@@ -107,10 +110,5 @@ class LottoGUI:
             messagebox.showerror("Error", "ID number must have 13 digits only")
 
 
-
-
 root = Tk()
 LottoGUI(root)
-
-
-
