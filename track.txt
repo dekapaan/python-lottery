@@ -1,0 +1,5 @@
+Date: 16/6/2021
+Name: Ron
+   Winning combination: [22, 2, 4, 15, 30, 35]
+   Total sets played for all games: 1
+   Total winnings due: R20
