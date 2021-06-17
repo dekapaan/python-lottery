@@ -1,5 +1,5 @@
-Date: 16/6/2021
-Name: Ron
-   Winning combination: [22, 2, 4, 15, 30, 35]
+Date: 17/6/2021
+Name: Ronald
+   Winning combination: [29, 11, 36, 49, 34, 39]
    Total sets played for all games: 1
-   Total winnings due: R20
+   Total winnings due: R10000000

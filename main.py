@@ -16,6 +16,7 @@ class LottoFunction:
 
     def compare(self, list1, list2):
         try:
+            self.counter = 0
             if len(list1) != len(list2):
                 raise IndexError
 
@@ -212,7 +213,7 @@ class LottoGUI(LottoFunction):
                 result_txt_var += "Set {}\n" \
                                   "Number of winning numbers: {}\n" \
                                   "Winnings: R{}\n\n".format(i + 1, count, winnings[count])
-                self.total_win += winnings[count]
+                self.total_win = self.total_win + winnings[count]
 
             text.config(state='normal')
             text.insert(END, result_txt_var)
@@ -231,6 +232,7 @@ class LottoGUI(LottoFunction):
                     f.write("   Winning combination: {}\n".format(self.win_nums))
                     f.write("   Total sets played for all games: {}\n".format(self.set_count))
                     f.write("   Total winnings due: R{}\n".format(self.total_win))
+                print("wow")
 
         lbl_head = Label(window, text="Test\n your\n luck", width=10, font="monospace 12 bold",
                          bg="#171717",
@@ -294,7 +296,7 @@ class LottoGUI(LottoFunction):
         btn_play_again.place(x=510, y=280)
         btn_claim = Button(window, text="Claim", bg="#171717", fg="#FA003F", borderwidth="0",
                            highlightbackground="#FA003F", activebackground="#FA003F",
-                           activeforeground="#171717", command=lambda: [self.claim_window(self.claim_win),
+                           activeforeground="#171717", command=lambda: [claim(), self.claim_window(self.claim_win),
                                                                         window.destroy()])
         btn_claim.place(x=620, y=280)
         btn_exit = Button(window, text="Exit", bg="#171717", fg="#FA003F", borderwidth="0",
@@ -305,52 +307,64 @@ class LottoGUI(LottoFunction):
     def claim_window(self, window):
         window = Toplevel()
         window.title("Claim your prize")
-        window.geometry("400x300")
+        window.geometry("500x300")
         window.config(bg="#171717")
+
+        def convert_currency():
+            cur_api = requests.get("https://v6.exchangerate-api.com/v6/b8b53279722ad58c70d2a2de/latest/ZAR")
+            cur_data = cur_api.json()
+            amount = prize * cur_data["conversion_rates"][entry_currency.get()]
+            amount_text = '{} ({})'.format(round(amount, 2), entry_currency.get())
+            entry_winning_amount.config(state='normal')
+            entry_winning_amount.delete("1.0", "end")
+            entry_winning_amount.insert(END, amount_text)
+            entry_winning_amount.tag_configure('center', justify=RIGHT)
+            entry_winning_amount.tag_add('center', 1.0, 'end')
+            entry_winning_amount.config(state='disabled')
 
         lbl_head = Label(window, text="Enter your bank details", font="Garuda 12 bold", bg="#171717", fg="#FA003F")
         lbl_head.place(x=110, y=10)
-
-        lbl_account_holder = Label(window, text="account holder name", font="Garuda 12", bg="#171717", fg="#FA003F")
+        lbl_account_holder = Label(window, text="Account holder name", font="Garuda 12", bg="#171717", fg="#fff")
         entry_account_holder_name = Entry(window)
         lbl_account_holder.place(x=20, y=100)
-        entry_account_holder_name.place(x=200, y=103)
+        entry_account_holder_name.place(x=300, y=103)
 
-        lbl_account_num = Label(window, text="Bank account number", font="Garuda 12", bg="#171717", fg="#FA003F")
+        lbl_account_num = Label(window, text="Bank account number", font="Garuda 12", bg="#171717", fg="#fff")
         entry_account_num = Entry(window)
         lbl_account_num.place(x=20, y=130)
-        entry_account_num.place(x=200, y=133)
+        entry_account_num.place(x=300, y=133)
 
-        lbl_currency = Label(window, text="Choose currency", font="Garuda 12", bg="#171717", fg="#FA003F")
-        response = requests.get("https://v6.exchangerate-api.com/v6/b8b53279722ad58c70d2a2de/latest/ZAR")
-        data = response.json()
-        conversion_rates = data["conversion_rates"]
-        options_currency = []
-        selection_currency = StringVar()
-        for key in conversion_rates.keys():
-            options_currency.append(key)
-        option_menu_currency = ttk.OptionMenu(window, selection_currency, "select an option", *options_currency)
+        lbl_currency = Label(window, text="Currency code(if not ZAR)", font="Garuda 12", bg="#171717", fg="#fff")
+        entry_currency = Entry(window)
+        btn_currency = Button(window, text="change currency", font="Garuda 11", pady=0, padx=13, width=17, bg="#171717", fg="#FA003F",
+                              borderwidth="0", highlightbackground="#FA003F", activebackground="#FA003F",
+                              activeforeground="#171717", command=convert_currency)
+        btn_currency.place(x=300, y=190)
         lbl_currency.place(x=20, y=160)
-        option_menu_currency.place(x=200, y=163)
+        entry_currency.place(x=300, y=163)
+
+        with open("track.txt", "r") as f:
+            for line in f:
+                if "winnings" in line:
+                    prize = round(float(line[24:-1]), 2)
 
         lbl_winning_amount_head = Label(window, text="Total winnings", font="Garuda 12", bg="#171717",
                                         fg="#FA003F")
-        entry_winning_amount = Entry(window, borderwidth="0", bg="#171717", fg="#FA003F")
-        entry_winning_amount.insert(0, "$$$")
-        entry_winning_amount.config(justify=RIGHT)
+        entry_winning_amount = Text(window, borderwidth="0", bg="#fff", height=1, width=20)
+        entry_winning_amount.insert(END, "{} (ZAR)".format(prize))
+        entry_winning_amount.tag_configure('center', justify=RIGHT)
+        entry_winning_amount.tag_add('center', 1.0, 'end')
         lbl_winning_amount_head.place(x=20, y=230)
-        entry_winning_amount.place(x=200, y=230)
+        entry_winning_amount.place(x=300, y=237)
 
-        lbl_bank = Label(window, text="Select bank", font="Garuda 12", bg="#171717", fg="#FA003F")
+        lbl_bank = Label(window, text="Select bank", font="Garuda 12", bg="#171717", fg="#fff")
         selection_bank = StringVar()
         options_banks = ['ABSA', 'Nedbank', 'FNB', 'Standard Bank']
         option_menu_banks = ttk.OptionMenu(window, selection_bank, "select an option", *options_banks)
         lbl_bank.place(x=20, y=50)
-        option_menu_banks.place(x=200, y=50)
+        option_menu_banks.place(x=300, y=50)
 
 
 if __name__ == '__main__':
     root = Tk()
     LottoGUI(root)
-
-# https://v6.exchangerate-api.com/v6/b8b53279722ad58c70d2a2de/latest/USD
