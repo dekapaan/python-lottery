@@ -1,5 +1,38 @@
 Date: 17/6/2021
 Name: Ronald
-   Winning combination: [29, 11, 36, 49, 34, 39]
+   Player ID: greenman
+   Email: terblancheronald@gmail.com
+   Winning combination: [25, 19, 44, 38, 49, 26]
+   Total sets played for all games: 1
+   Total winnings due: R20
+
+Date: 17/6/2021
+Name: Ronald
+   Player ID: blueman
+   Email: terblancheronald@gmail.com
+   Winning combination: [3, 36, 30, 40, 21, 26]
+   Total sets played for all games: 1
+   Total winnings due: R20
+
+Date: 17/6/2021
+Name: Ronald
+   PlayerID: 0a6e1a1d-cfa6-11eb-b95b-6c71d9ddecc8   Email: terblancheronald@gmail.com   Winning combination: [47, 37, 22, 11, 13, 24]
+   Total sets played for all games: 1
+   Total winnings due: R20
+
+Date: 17/6/2021
+Name: Ronald
+   PlayerID: 3dfcfc2b-cfa6-11eb-9962-6c71d9ddecc8
+   Email: terblancheronald@gmail.com
+   Winning combination: [12, 17, 4, 42, 9, 3]
    Total sets played for all games: 1
    Total winnings due: R10000000
+
+Date: 17/6/2021
+Name: Ronald
+   PlayerID: 77288f78-cfa9-11eb-99ae-6c71d9ddecc8
+   Email: terblancheronald@gmail.com
+   Winning combination: [45, 28, 27, 4, 30, 21]
+   Total sets played for all games: 1
+   Total winnings due: R0
+

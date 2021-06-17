@@ -1,4 +1,5 @@
 import datetime
+import socket
 from tkinter import *
 from tkinter import messagebox
 from validate_email import validate_email
@@ -8,6 +9,10 @@ import random
 import uuid
 import requests
 import tkinter.ttk as ttk
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import DNS
 
 
 class LottoFunction:
@@ -47,7 +52,6 @@ class LottoGUI(LottoFunction):
         # Window set up
         super().__init__()
         self.master = master
-        self.master.withdraw()
         self.master.title("Login")
         self.master.geometry("500x400")
         self.master.config(bg="#171717")
@@ -56,7 +60,6 @@ class LottoGUI(LottoFunction):
         self.set_count = 0
         self.play_win = None
         self.claim_win = None
-        self.claim_window(self.claim_win)
         self.total_win = 0
         self.win_nums = []
         self.game_no = 0
@@ -125,9 +128,9 @@ class LottoGUI(LottoFunction):
                 raise EmailError
 
             int(self.entry_id.get())
-            id = (self.entry_id.get())
-            date_of_birth = rsaidnumber.parse(id).date_of_birth
-            if len(id) < 13 or len(id) > 13:
+            _id = (self.entry_id.get())
+            date_of_birth = rsaidnumber.parse(_id).date_of_birth
+            if len(_id) < 13 or len(_id) > 13:
                 raise IdLengthError
             elif relativedelta.relativedelta(datetime.datetime.today(), date_of_birth).years < 18:
                 messagebox.showerror("Error", "You are underage and unable to participate")
@@ -142,6 +145,9 @@ class LottoGUI(LottoFunction):
 
         except EmailError:
             messagebox.showerror("Error", "Invalid email")
+
+        except DNS.Base.TimeoutError:
+            messagebox.showerror("Timeout", "Check your internet connection")
 
         except ValueError:
             messagebox.showerror("Error", "Invalid ID number")
@@ -226,12 +232,14 @@ class LottoGUI(LottoFunction):
                 day = datetime.datetime.today().day
                 month = datetime.datetime.today().month
                 year = datetime.datetime.today().year
-                with open('track.txt', 'w') as f:
+                with open('track.txt', 'a') as f:
                     f.write('Date: {}/{}/{}\n'.format(day, month, year))
                     f.write("Name: {}\n".format(self.name))
+                    f.write("   PlayerID: {}\n".format(player_id))
+                    f.write("   Email: {}\n".format(self.email))
                     f.write("   Winning combination: {}\n".format(self.win_nums))
                     f.write("   Total sets played for all games: {}\n".format(self.set_count))
-                    f.write("   Total winnings due: R{}\n".format(self.total_win))
+                    f.write("   Total winnings due: R{}\n\n".format(self.total_win))
                 print("wow")
 
         lbl_head = Label(window, text="Test\n your\n luck", width=10, font="monospace 12 bold",
@@ -304,7 +312,8 @@ class LottoGUI(LottoFunction):
                           activeforeground="#171717", command=exit)
         btn_exit.place(x=800, y=280)
 
-    def claim_window(self, window):
+    @staticmethod
+    def claim_window(window):
         window = Toplevel()
         window.title("Claim your prize")
         window.geometry("500x300")
@@ -322,6 +331,49 @@ class LottoGUI(LottoFunction):
             entry_winning_amount.tag_add('center', 1.0, 'end')
             entry_winning_amount.config(state='disabled')
 
+        def email():
+            try:
+                with open('track.txt', 'r') as file:
+                    for _line in file:
+                        if "Name" in _line:
+                            name = _line[6:-1]
+                        if "Email" in _line:
+                            email_id = _line[10:-1]
+                        if "ID" in _line:
+                            player_id = _line[14:-1]
+
+                sender_email_id = 'rtplaylotto@gmail.com'
+                receiver_email_id = email_id
+                password = "SFUqK9E3mvkcrR7"
+                subject = "Congratulations"
+                msg = MIMEMultipart()
+                msg['From'] = sender_email_id
+                msg['To'] = ", ".join(receiver_email_id)
+                msg['Subject'] = subject
+                body = "Congratulations {} on winning {}\n" \
+                       "Please find details below\n\n" \
+                       "Bank: {}\n" \
+                       "Account holder: {}\n" \
+                       "Account number: {}\n" \
+                       "Player ID: {}\n\n" \
+                       "Winnings, if any, should reflect in your account in 3-5 business days\n\n" \
+                       "Best regards\n" \
+                       "rtplay Team".format(name, entry_winning_amount.get(1.0, END), selection_bank.get(),
+                                            entry_account_holder_name.get(), entry_account_num.get(), player_id)
+                msg.attach(MIMEText(body, 'plain'))
+                text = msg.as_string()
+                s = smtplib.SMTP('smtp.gmail.com', 587)
+                s.starttls()
+                s.login(sender_email_id, password)
+                s.sendmail(sender_email_id, receiver_email_id, text)
+                s.quit()
+
+                messagebox.showinfo("Goodbye", "Check your email for further details. Application will now close")
+                window.destroy()
+
+            except socket.gaierror:
+                messagebox.showerror(message="Failed to send email. Check internet connection")
+
         lbl_head = Label(window, text="Enter your bank details", font="Garuda 12 bold", bg="#171717", fg="#FA003F")
         lbl_head.place(x=110, y=10)
         lbl_account_holder = Label(window, text="Account holder name", font="Garuda 12", bg="#171717", fg="#fff")
@@ -336,7 +388,8 @@ class LottoGUI(LottoFunction):
 
         lbl_currency = Label(window, text="Currency code(if not ZAR)", font="Garuda 12", bg="#171717", fg="#fff")
         entry_currency = Entry(window)
-        btn_currency = Button(window, text="change currency", font="Garuda 11", pady=0, padx=13, width=17, bg="#171717", fg="#FA003F",
+        btn_currency = Button(window, text="change currency", font="Garuda 11", pady=0, padx=13, width=17, bg="#171717",
+                              fg="#FA003F",
                               borderwidth="0", highlightbackground="#FA003F", activebackground="#FA003F",
                               activeforeground="#171717", command=convert_currency)
         btn_currency.place(x=300, y=190)
@@ -363,6 +416,11 @@ class LottoGUI(LottoFunction):
         option_menu_banks = ttk.OptionMenu(window, selection_bank, "select an option", *options_banks)
         lbl_bank.place(x=20, y=50)
         option_menu_banks.place(x=300, y=50)
+
+        btn_confirm = Button(window, text='Confirm', font="Garuda 11", bg="#171717", fg="#FA003F",
+                             borderwidth="0", highlightbackground="#FA003F", activebackground="#FA003F",
+                             activeforeground="#171717", command=email)
+        btn_confirm.place(x=150, y=250)
 
 
 if __name__ == '__main__':
