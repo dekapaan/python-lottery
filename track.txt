@@ -34,5 +34,13 @@ Name: Ronald
    Email: terblancheronald@gmail.com
    Winning combination: [45, 28, 27, 4, 30, 21]
    Total sets played for all games: 1
-   Total winnings due: R0
+   Total winnings due: R300
+
+Date: 18/6/2021
+Name: Matthew
+   PlayerID: 76c4164c-d031-11eb-8be9-79c72c643bee
+   Email: mattymallison@gmail.com
+   Winning combination: [12, 11, 19, 21, 48, 14]
+   Total sets played for all games: 1
+   Total winnings due: R10000000
 
