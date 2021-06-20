@@ -2,7 +2,7 @@ import datetime
 import socket
 from tkinter import *
 from tkinter import messagebox
-from validate_email import validate_email
+import re
 import rsaidnumber
 from dateutil import relativedelta
 import random
@@ -14,6 +14,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import DNS
 from playsound import playsound
+
 
 class LottoFunction:
     def __init__(self):
@@ -63,6 +64,7 @@ class LottoGUI(LottoFunction):
         # variables needed multiple places in class
         self.name = ""
         self.email = ""
+        self.address = ""
         self.set_count = 0
         self.play_win = None
         self.claim_win = None
@@ -74,7 +76,7 @@ class LottoGUI(LottoFunction):
         self.img2 = self.img2.subsample(16)
 
         # login frame
-        self.frame = Frame(self.master, width=450, height=200, bg="#131313")
+        self.frame = Frame(self.master, width=450, height=220, bg="#131313")
         self.frame.place(x=25, y=95)
 
         # login labels
@@ -82,25 +84,29 @@ class LottoGUI(LottoFunction):
                                  fg="#f9d914")
         self.lbl_subhead.place(x=150, y=12)
         img = PhotoImage(file='images/lotto.png')  # lotto ball image
-        img = img.subsample(16)
+        img = img.subsample(4)
         lbl_image = Label(self.master, image=img, bg="#171717")
-        lbl_image.place(x=240, y=1)
+        lbl_image.place(x=130, y=5)
 
         # name, email and id labels
         self.lbl_name = Label(self.frame, text="Name", font="Garuda 12", bg="#131313", fg="white")
         self.lbl_email = Label(self.frame, text="Email", font="Garuda 12", bg="#131313", fg="white")
         self.lbl_id = Label(self.frame, text="South African ID", font="Garuda 12", bg="#131313", fg="white")
+        self.lbl_address = Label(self.frame, text="Address", font="Garuda 12", bg="#171717", fg="white")
         self.lbl_name.place(x=40, y=60)
         self.lbl_email.place(x=40, y=100)
         self.lbl_id.place(x=40, y=140)
+        self.lbl_address.place(x=40, y=180)
 
         # login entry widgets
         self.entry_email = Entry(self.frame, borderwidth="0")
         self.entry_name = Entry(self.frame, borderwidth="0")
         self.entry_id = Entry(self.frame, borderwidth="0")
-        self.entry_name.place(x=245, y=67)
-        self.entry_email.place(x=245, y=107)
-        self.entry_id.place(x=245, y=147)
+        self.entry_address = Entry(self.frame, borderwidth="0")
+        self.entry_name.place(x=245, y=60)
+        self.entry_email.place(x=245, y=100)
+        self.entry_id.place(x=245, y=140)
+        self.entry_address.place(x=245, y=180)
 
         # validate button
         self.btn_validate = Button(self.master, text="Validate", bg="#171717", fg="#f9d914", borderwidth="0",
@@ -136,7 +142,8 @@ class LottoGUI(LottoFunction):
                 raise EmptyError
 
             # Ensures email exists
-            if not validate_email(self.entry_email.get(), verify=True):
+            regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
+            if not (re.search(regex, self.entry_email.get())):
                 raise EmailError
 
             int(self.entry_id.get())  # makes sure ID is only integers. If not, raises value error
@@ -153,10 +160,11 @@ class LottoGUI(LottoFunction):
             else:  # If validation process successful, move on to next screen and entries saved to variables
                 self.name = self.entry_name.get()
                 self.email = self.entry_email.get()
+                self.address = self.entry_address.get()
                 messagebox.showinfo("Welcome", "Let's play!")
+                playsound("sounds/granted.wav")
                 root.withdraw()
                 self.play_window(self.play_win)
-                playsound("sounds/granted.wav")
 
         except EmptyError:
             messagebox.showerror(message="Make sure all entry fields are filled")
@@ -179,7 +187,7 @@ class LottoGUI(LottoFunction):
         window = Toplevel()
         result_text = ""
         window.title("rt Play")
-        window.geometry("900x350")
+        window.geometry("930x350")
         window.config(bg="#171717")
 
         def submit():
@@ -235,11 +243,14 @@ class LottoGUI(LottoFunction):
             btn_claim.config(state='disabled')
 
         def print_result(result_txt_var):  # Compares sets to winning numbers and prints results
+            win_nums_text = "Winning numbers: {}, {}   {}, {}, {}, {}".format(self.win_nums[0], self.win_nums[1], self.win_nums[2], self.win_nums[3], self.win_nums[4], self.win_nums[5],)
+            lbl_win_nums.config(text=win_nums_text)
             self.game_no += 1
             result_txt_var += "Game {}\n".format(self.game_no)  # Game number
             # winnings corresponding to matching numbers (keys) and values in rand
             winnings = {0: 0, 1: 0, 2: 20, 3: 100.50, 4: 2384, 5: 8584, 6: 10000000}
             self.set_count += len(self.results)  # count number of sets for that game
+            count = 0
             for i in range(len(self.results)):
                 # for each set per game, count matching numbers by calling compare function
                 print(self.results)
@@ -250,11 +261,11 @@ class LottoGUI(LottoFunction):
                                   "Winnings: R{}\n\n".format(i + 1, count, winnings[count])  # save results in text form
                 self.total_win = self.total_win + winnings[count]
 
-                # sounds for winning and losing
-                if winnings[count] == 0:
-                    playsound("sounds/lose.wav")
-                else:
-                    playsound("sounds/win.wav")
+            # Sounds for losing and winning
+            if winnings[count] == 0:
+                playsound("sounds/lose.wav")
+            else:
+                playsound("sounds/win.wav")
 
             # send results text to text widget to be seen by player
             text.config(state='normal')
@@ -271,6 +282,7 @@ class LottoGUI(LottoFunction):
                 with open('track.txt', 'a') as f:
                     f.write('Date: {}/{}/{}\n'.format(day, month, year))
                     f.write("Name: {}\n".format(self.name))
+                    f.write("   Address: {}\n".format(self.address))
                     f.write("   PlayerID: {}\n".format(player_id))
                     f.write("   Email: {}\n".format(self.email))
                     f.write("   Winning combination: {}\n".format(self.win_nums))
@@ -285,15 +297,16 @@ class LottoGUI(LottoFunction):
         lbl_image2.place(x=240, y=1)
 
         # player ID
-        player_id = uuid.uuid1()
+        player_id = str(uuid.uuid1())
+        player_id = player_id[0:5]
         player_id_text = "Player ID: {}".format(player_id)
         lbl_player = Label(window, text=player_id_text, bg="#131313", fg="white", font="Garuda 12")
-        lbl_player.place(x=60, y=100)
+        lbl_player.place(x=180, y=100)
 
         # Number selection widgets
         lbl_select = Label(window, text="Select your numbers:", font="Garuda 12 bold", bg="#171717",
                            fg="#f9d914")
-        lbl_select.place(x=175, y=180)
+        lbl_select.place(x=150, y=200)
 
         # spin boxes for set entry
         spin1 = Spinbox(window, from_=1, to=49, width=5)
@@ -302,18 +315,18 @@ class LottoGUI(LottoFunction):
         spin4 = Spinbox(window, from_=1, to=49, width=5)
         spin5 = Spinbox(window, from_=1, to=49, width=5)
         spin6 = Spinbox(window, from_=1, to=49, width=5)
-        spin1.place(x=45, y=235)
-        spin2.place(x=115, y=235)
-        spin3.place(x=185, y=235)
-        spin4.place(x=255, y=235)
-        spin5.place(x=325, y=235)
-        spin6.place(x=405, y=235)
+        spin1.place(x=45, y=255)
+        spin2.place(x=115, y=255)
+        spin3.place(x=185, y=255)
+        spin4.place(x=255, y=255)
+        spin5.place(x=325, y=255)
+        spin6.place(x=405, y=255)
 
         # submit button
         btn_submit = Button(window, text="Submit", bg="#171717", fg="#f9d914", borderwidth="0",
                             highlightbackground="#f9d914", activebackground="#f9d914", activeforeground="#171717",
                             command=submit)
-        btn_submit.place(x=215, y=280)
+        btn_submit.place(x=215, y=300)
 
         # gets first set of winning numbers
         for x in range(6):
@@ -323,11 +336,14 @@ class LottoGUI(LottoFunction):
             self.win_nums.append(rand_num)
         print(self.win_nums)
 
+        lbl_win_nums = Label(window, text="Winning numbers: ",bg="#171717", fg="#f9d914", font="Garuda 12")
+        lbl_win_nums.place(x=510, y=40)
+
         # result widgets
         head_result = Label(window, text="Were you lucky?", font="Garuda 12 bold", bg="#171717", fg="#f9d914")
         head_result.place(x=620, y=10)
         frame = Frame(window, height=50)  # frame for text widget and scrollbar
-        frame.place(x=510, y=50)
+        frame.place(x=510, y=70)
         text = Text(frame)
         text.config(height=12.4, width=40)
         text.config(state='disabled')
@@ -342,18 +358,18 @@ class LottoGUI(LottoFunction):
                                 highlightbackground="#f9d914", activebackground="#f9d914",
                                 activeforeground="#171717", state='disabled', command=lambda: [self.results.clear(),
                                                                                                play_again()])
-        btn_play_again.place(x=510, y=280)
+        btn_play_again.place(x=510, y=300)
 
         # claim button - destroys play window, `
         btn_claim = Button(window, text="Claim", bg="#171717", fg="#f9d914", borderwidth="0",
                            highlightbackground="#f9d914", activebackground="#f9d914",
                            activeforeground="#171717", state='disabled', command=lambda: [claim(), self.claim_window(self.claim_win),
                                                                         window.destroy()])
-        btn_claim.place(x=620, y=280)
+        btn_claim.place(x=620, y=300)
         btn_exit = Button(window, text="Exit", bg="#171717", fg="#f9d914", borderwidth="0",
                           highlightbackground="#f9d914", activebackground="#f9d914",
                           activeforeground="#171717", command=exit)
-        btn_exit.place(x=800, y=280)
+        btn_exit.place(x=834, y=300)
 
     @staticmethod
     def claim_window(window):  # claim window initialisation function
@@ -402,7 +418,7 @@ class LottoGUI(LottoFunction):
                         if "Email" in _line:
                             email_id = _line[10:-1]
                         if "ID" in _line:
-                            player_id = _line[14:-1]
+                            player_id = _line[13:-1]
 
                 # Following is to make sure account holder name entered is alphabetic
                 numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -468,23 +484,23 @@ class LottoGUI(LottoFunction):
 
         # subheading label
         lbl_head = Label(window, text="Enter your bank details", font="Garuda 12 bold", bg="#171717", fg="#f9d914")
-        lbl_head.place(x=150, y=10)
+        lbl_head.place(x=125, y=10)
 
         # Account holder name label and entry widgets
         lbl_account_holder = Label(window, text="Account holder name", font="Garuda 12", bg="#171717", fg="#fff")
-        entry_account_holder_name = Entry(window)
+        entry_account_holder_name = Entry(window, width=16)
         lbl_account_holder.place(x=20, y=80)
         entry_account_holder_name.place(x=300, y=85)
 
         # Bank account number label and entry widgets
         lbl_account_num = Label(window, text="Bank account number", font="Garuda 12", bg="#171717", fg="#fff")
-        entry_account_num = Entry(window)
+        entry_account_num = Entry(window, width=16)
         lbl_account_num.place(x=20, y=110)
         entry_account_num.place(x=300, y=115)
 
         # currency code label and entry widgets
         lbl_currency = Label(window, text="Currency code(if not ZAR)", font="Garuda 12", bg="#171717", fg="#fff")
-        entry_currency = Entry(window)
+        entry_currency = Entry(window, width=16)
         btn_currency = Button(window, text="change currency", font="Garuda 11", pady=0, padx=13, width=52, bg="#171717",
                               fg="#f9d914", borderwidth="0", highlightbackground="#f9d914", activebackground="#f9d914",
                               activeforeground="#171717", command=convert_currency)
@@ -500,7 +516,7 @@ class LottoGUI(LottoFunction):
 
         # Winning amount label and entry( contains winnings in zar then in chosen currency code) widgets
         lbl_winning_amount_head = Label(window, text="Total winnings", font="Garuda 12", bg="#171717", fg="#f9d914")
-        entry_winning_amount = Text(window, borderwidth="0", bg="#fff", height=1, width=20)
+        entry_winning_amount = Text(window, borderwidth="0", bg="#fff", height=1, width=18)
         entry_winning_amount.insert(END, "{} (ZAR)".format(prize))
         entry_winning_amount.tag_configure('center', justify=RIGHT)
         entry_winning_amount.tag_add('center', 1.0, 'end')
@@ -516,7 +532,7 @@ class LottoGUI(LottoFunction):
         option_menu_banks.place(x=300, y=50)
 
         # confirm button widget to validate details, send email and close program
-        btn_confirm = Button(window, text='Confirm', font="Garuda 11", pady=0, padx=12, width=52, bg="#171717", fg="#f9d914",
+        btn_confirm = Button(window, text='Confirm', font="Garuda 11", pady=0, padx=12, width=44, bg="#171717", fg="#f9d914",
                              borderwidth="0", highlightbackground="#f9d914", activebackground="#f9d914",
                              activeforeground="#171717", command=email)
         btn_confirm.place(x=20, y=280)
