@@ -243,7 +243,7 @@ class LottoGUI(LottoFunction):
             btn_claim.config(state='disabled')
 
         def print_result(result_txt_var):  # Compares sets to winning numbers and prints results
-            win_nums_text = "Winning numbers: {}, {}   {}, {}, {}, {}".format(self.win_nums[0], self.win_nums[1], self.win_nums[2], self.win_nums[3], self.win_nums[4], self.win_nums[5],)
+            win_nums_text = "Winning numbers: {}, {}, {}, {}, {}, {}".format(self.win_nums[0], self.win_nums[1], self.win_nums[2], self.win_nums[3], self.win_nums[4], self.win_nums[5],)
             lbl_win_nums.config(text=win_nums_text)
             self.game_no += 1
             result_txt_var += "Game {}\n".format(self.game_no)  # Game number
@@ -488,19 +488,19 @@ class LottoGUI(LottoFunction):
 
         # Account holder name label and entry widgets
         lbl_account_holder = Label(window, text="Account holder name", font="Garuda 12", bg="#171717", fg="#fff")
-        entry_account_holder_name = Entry(window, width=16)
+        entry_account_holder_name = Entry(window)
         lbl_account_holder.place(x=20, y=80)
         entry_account_holder_name.place(x=300, y=85)
 
         # Bank account number label and entry widgets
         lbl_account_num = Label(window, text="Bank account number", font="Garuda 12", bg="#171717", fg="#fff")
-        entry_account_num = Entry(window, width=16)
+        entry_account_num = Entry(window)
         lbl_account_num.place(x=20, y=110)
         entry_account_num.place(x=300, y=115)
 
         # currency code label and entry widgets
         lbl_currency = Label(window, text="Currency code(if not ZAR)", font="Garuda 12", bg="#171717", fg="#fff")
-        entry_currency = Entry(window, width=16)
+        entry_currency = Entry(window)
         btn_currency = Button(window, text="change currency", font="Garuda 11", pady=0, padx=13, width=52, bg="#171717",
                               fg="#f9d914", borderwidth="0", highlightbackground="#f9d914", activebackground="#f9d914",
                               activeforeground="#171717", command=convert_currency)
@@ -516,7 +516,7 @@ class LottoGUI(LottoFunction):
 
         # Winning amount label and entry( contains winnings in zar then in chosen currency code) widgets
         lbl_winning_amount_head = Label(window, text="Total winnings", font="Garuda 12", bg="#171717", fg="#f9d914")
-        entry_winning_amount = Text(window, borderwidth="0", bg="#fff", height=1, width=18)
+        entry_winning_amount = Text(window, borderwidth="0", bg="#fff", height=1, width=20)
         entry_winning_amount.insert(END, "{} (ZAR)".format(prize))
         entry_winning_amount.tag_configure('center', justify=RIGHT)
         entry_winning_amount.tag_add('center', 1.0, 'end')
@@ -532,7 +532,7 @@ class LottoGUI(LottoFunction):
         option_menu_banks.place(x=300, y=50)
 
         # confirm button widget to validate details, send email and close program
-        btn_confirm = Button(window, text='Confirm', font="Garuda 11", pady=0, padx=12, width=44, bg="#171717", fg="#f9d914",
+        btn_confirm = Button(window, text='Confirm', font="Garuda 11", pady=0, padx=12, width=52, bg="#171717", fg="#f9d914",
                              borderwidth="0", highlightbackground="#f9d914", activebackground="#f9d914",
                              activeforeground="#171717", command=email)
         btn_confirm.place(x=20, y=280)
